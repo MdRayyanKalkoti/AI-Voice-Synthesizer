@@ -308,7 +308,7 @@
             <p class="subtitle">Transform your text into natural speech</p>
         </div>
         
-        <form action="/speak" method="POST" id="voiceForm">
+        <form action="/speak" method="POST" >
             <div class="form-group">
                 <label class="label" for="text">Your Message</label>
                 <textarea 
@@ -334,101 +334,123 @@
             </div>
             
             <button type="submit" class="btn" id="submitBtn">
-                🚀 Generate Speech
-            </button>
+                 🚀 Generate Speech
+              </button>
+
             
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 Processing your request...
             </div>
         </form>
-        
-        <!-- This would be populated by your Flask template -->
         {% if audio_file %}
-<div class="audio-container" id="audioContainer">
-    <div class="audio-label">🎵 Generated Audio</div>
-    <audio class="audio-control" controls autoplay>
-        <source src="{{ url_for('static', filename='audio/' + audio_file) }}" type="audio/wav">
-        Your browser does not support the audio element.
-    </audio>
-    <br><br>
-    <a href="{{ url_for('static', filename='audio/' + audio_file) }}" download="{{ audio_file }}">
-        ⬇️ Download Audio
-    </a>
-</div>
+    <!-- Optional Web Speech message (can toggle via JS if Web API is used) -->
+    <div id="webAudioMsg" class="audio-container" style="display: none;">
+        <div class="audio-label">🎵 Web Speech Audio Playing</div>
+    </div>
+
+    <!-- Backend generated audio block -->
+    <div class="audio-container" id="audioContainer">
+        <div class="audio-label">🎵 Generated Audio</div>
+        <audio class="audio-control" controls autoplay>
+            <source src="{{ url_for('static', filename='audio/' + audio_file) }}" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+        <br><br>
+        <a href="{{ url_for('static', filename='audio/' + audio_file) }}" download="{{ audio_file }}">
+            ⬇️ Download Audio
+        </a>
+    </div>
 {% endif %}
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            Processing your request...
-        </div>
+
+       
 
     <script>
-        // Create floating particles
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 20;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 8 + 's';
-                particle.style.animationDuration = (8 + Math.random() * 4) + 's';
-                particlesContainer.appendChild(particle);
-            }
+    // Create floating particles
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 20;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 8 + 's';
+            particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+    // Character counter for textarea
+    const textarea = document.getElementById('text');
+    textarea.addEventListener('input', function() {
+        const remaining = 500 - this.value.length;
+        if (remaining < 50) {
+            this.style.borderColor = remaining < 0 ? '#ef4444' : '#f59e0b';
+        } else {
+            this.style.borderColor = '#e5e7eb';
+        }
+    });
+
+    // Initialize particles
+    createParticles();
+
+    // Add subtle hover effects to form elements
+    document.querySelectorAll('.textarea, .select').forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-1px)';
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Web Speech API handler
+    function speakWithWebAPI(event) {
+        event.preventDefault(); // Prevent form submission
+
+        const text = document.getElementById('text').value.trim();
+        const selectedVoice = document.getElementById('voice').value.toLowerCase();
+
+        if (!text) {
+            alert("Please enter some text.");
+            return;
         }
 
-        // Form handling
-        document.getElementById('voiceForm').addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.textContent = '🔄 Generating...';
-            loading.classList.add('active');
-            
-            // Note: In a real implementation, you'd handle the form submission
-            // and show the audio when the response comes back
-            
-            // Simulate loading for demo purposes
-            setTimeout(() => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '🚀 Generate Speech';
-                loading.classList.remove('active');
-                
-                // Show audio container (in real app, this would be done after successful response)
-                document.getElementById('audioContainer').style.display = 'block';
-                
-                // Simulate audio source (replace with actual Flask template variable)
-                // document.getElementById('audioPlayer').src = '...';
-            }, 2000);
-        });
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voices = synth.getVoices();
 
-        // Character counter for textarea
-        const textarea = document.getElementById('text');
-        textarea.addEventListener('input', function() {
-            const remaining = 500 - this.value.length;
-            if (remaining < 50) {
-                this.style.borderColor = remaining < 0 ? '#ef4444' : '#f59e0b';
-            } else {
-                this.style.borderColor = '#e5e7eb';
-            }
-        });
+        // Show the Web Speech message block
+        document.getElementById("webAudioMsg").style.display = "block";
 
-        // Initialize particles
-        createParticles();
+        // Wait for voices if not yet loaded
+        if (!voices.length) {
+            synth.onvoiceschanged = () => speakWithWebAPI(event);
+            return;
+        }
 
-        // Add subtle hover effects to form elements
-        document.querySelectorAll('.textarea, .select').forEach(element => {
-            element.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-1px)';
-            });
-            
-            element.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-    </script>
+        // Set voice
+        if (selectedVoice === 'male') {
+            utterance.voice = voices.find(v => v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david')) || voices[0];
+        } else {
+            utterance.voice = voices.find(v => v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira')) || voices[0];
+        }
+
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        synth.speak(utterance);
+    }
+
+    // Attach handler to form submit
+    document.getElementById('voiceForm').addEventListener('submit', speakWithWebAPI);
+
+    // Force load voices once on page load
+    window.speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+</script>
+
 </body>
 </html>
