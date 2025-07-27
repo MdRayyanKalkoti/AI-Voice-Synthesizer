@@ -25,8 +25,9 @@ def index():
 @app.route("/speak", methods=["POST"])
 def speak():
     text = request.form["text"]
-    voice_id = request.form["voice"]
-    audio_file = generate_speech(text, voice_id)
+    lang = request.form.get("lang", "en")  # Optional: user chooses language
+    voice = request.form.get("voice", "female")
+    audio_file = generate_speech(text, lang)
     return render_template("index.html", audio_file=audio_file)
 
 @app.route("/static/audio/<filename>")
@@ -34,6 +35,9 @@ def serve_audio(filename):
     return send_from_directory(AUDIO_FOLDER, filename)
 
 if __name__ == "__main__":
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-# app.py
+    app.run(debug=True, host="0.0.0.0", port=5000)
+
+
+
+
+    
