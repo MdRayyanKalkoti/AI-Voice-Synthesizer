@@ -344,16 +344,13 @@
             </div>
         </form>
         {% if audio_file %}
-    <!-- Optional Web Speech message (can toggle via JS if Web API is used) -->
-    <div id="webAudioMsg" class="audio-container" style="display: none;">
-        <div class="audio-label">🎵 Web Speech Audio Playing</div>
-    </div>
+  
 
     <!-- Backend generated audio block -->
     <div class="audio-container" id="audioContainer">
         <div class="audio-label">🎵 Generated Audio</div>
         <audio class="audio-control" controls autoplay>
-            <source src="{{ url_for('static', filename='audio/' + audio_file) }}" type="audio/wav">
+            <source src="{{ url_for('static', filename='audio/' + audio_file) }}" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
         <br><br>

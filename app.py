@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_from_directory
-import pyttsx3
+from gtts import gTTS  # Add this import at the top
 import os
 import uuid
 
@@ -9,22 +9,12 @@ app = Flask(__name__)
 AUDIO_FOLDER = os.path.join("static", "audio")
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
-def generate_speech(text, voice_id=None):
-    engine = pyttsx3.init()
-    voices = engine.getProperty('voices')
-
-    # Select voice or default
-    selected_voice = next((v for v in voices if voice_id in v.id), voices[0])
-    engine.setProperty('voice', selected_voice.id)
-    engine.setProperty('rate', 170)
-    engine.setProperty('volume', 1.0)
-
-    # Save audio to file
-    filename = f"{uuid.uuid4().hex}.wav"
+def generate_speech(text, lang="en"):
+    filename = f"{uuid.uuid4().hex}.mp3"
     filepath = os.path.join(AUDIO_FOLDER, filename)
 
-    engine.save_to_file(text, filepath)
-    engine.runAndWait()
+    tts = gTTS(text=text, lang=lang)
+    tts.save(filepath)
 
     return filename
 
